@@ -1,0 +1,11 @@
+{
+  "name": "Paint",
+  "id": "paint",
+  "version": "1.0.0",
+  "description": "Draw with the map's own pieces: lines, rectangles, ellipses, polygons, stars, freehand strokes, spray, text and an eraser, in whatever the Terrain, Doodads, Units, Sprites or Fog of War palette has picked — outlined or filled, spaced, jittered, and one undo step each.",
+  "author": "Jeany",
+  "homepage": "https://github.com/scm-js/plugin-paint",
+  "entry": "plugin.ts",
+  "icon": "icon.svg",
+  "api": 1
+}
