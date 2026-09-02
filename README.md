@@ -9,6 +9,10 @@ player, a sprite, or fog of war for some players. Draw a line of Photon Cannons,
 ellipse with Zerglings, ring a base with a staggered grid of Missile Turrets, write "GG"
 in Mineral Fields, or carve a star into the high ground. Every stroke is one undo step.
 
+The preview under the pointer is the real thing: units, sprites and doodads are drawn with
+the graphics the map itself draws them with, so you see the shape you are about to lay down
+before you let go.
+
 ## Install
 
 In scmJS: **Plugins ▸ Manage Plugins…**, paste

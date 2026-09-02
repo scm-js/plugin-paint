@@ -489,6 +489,13 @@ class Session {
     }
   }
 
+  /** Start the fetch for whatever the brush draws; `onImageLoaded` redraws when it lands. */
+  wantArt() {
+    const brush = this.brush;
+    if (brush.kind === "unit") this.api.graphics.requestUnit(brush.unitId);
+    else if (brush.kind === "sprite") this.api.graphics.requestSprite(brush.spriteKind, brush.id);
+  }
+
   private updatePreview() {
     const g = this.gesture;
     const info = this.api.document.info();
@@ -652,7 +659,9 @@ class Session {
     if (brush.kind === "unit") {
       const w = brush.size.width * view.zoom, hh = brush.size.height * view.zoom;
       r.points.forEach((p, i) => {
-        const c = r.owners[i] === undefined || r.owners[i] === brush.owner ? color : this.api.palette.playerColor(r.owners[i]);
+        const owner = r.owners[i] ?? brush.owner;
+        const c = owner === brush.owner ? color : this.api.palette.playerColor(owner);
+        if (this.art(ctx, view, this.api.graphics.unitImage(brush.unitId, { owner }), p)) return;
         ctx.fillStyle = `${c}55`;
         ctx.strokeStyle = c;
         ctx.fillRect(view.x(p.x) - w / 2, view.y(p.y) - hh / 2, w, hh);
@@ -662,18 +671,28 @@ class Session {
     }
     if (brush.kind === "doodad") {
       const w = brush.info.width * view.tilePx, hh = brush.info.height * view.tilePx;
-      ctx.fillStyle = `${color}44`;
-      ctx.strokeStyle = color;
+      const picture = this.api.graphics.doodadImage(brush.info.id);
       for (const p of r.points) {
         const x = view.x((Math.round(p.x / TILE - brush.info.width / 2)) * TILE), y = view.y((Math.round(p.y / TILE - brush.info.height / 2)) * TILE);
-        ctx.fillRect(x, y, w, hh);
+        if (picture) {
+          ctx.globalAlpha = GHOST_ALPHA;
+          ctx.drawImage(picture.image, x, y, w, hh);
+          ctx.globalAlpha = 1;
+        } else {
+          ctx.fillStyle = `${color}44`;
+          ctx.fillRect(x, y, w, hh);
+        }
+        ctx.strokeStyle = color;
         ctx.strokeRect(Math.round(x) + 0.5, Math.round(y) + 0.5, Math.round(w) - 1, Math.round(hh) - 1);
       }
       return;
     }
     const radius = Math.max(3, Math.min(8, 8 * view.zoom));
+    const sprite = brush.kind === "sprite" ? brush : null;
     r.points.forEach((p, i) => {
-      const c = brush.kind === "sprite" && r.owners[i] !== undefined && r.owners[i] !== brush.owner ? this.api.palette.playerColor(r.owners[i]) : color;
+      const owner = r.owners[i] ?? sprite?.owner ?? 0;
+      const c = sprite && owner !== sprite.owner ? this.api.palette.playerColor(owner) : color;
+      if (sprite && this.art(ctx, view, this.api.graphics.spriteImage(sprite.spriteKind, sprite.id, { owner, flipped: sprite.flipped }), p)) return;
       ctx.fillStyle = `${c}88`;
       ctx.strokeStyle = c;
       ctx.beginPath();
@@ -681,6 +700,20 @@ class Session {
       ctx.fill();
       ctx.stroke();
     });
+  }
+
+  /**
+   * The thing's real picture, centred on a point and faded, when the graphics are in
+   * memory. `api.graphics` hands back the canvas the viewport itself blits, so a preview
+   * of two hundred marines costs two hundred `drawImage` calls and no rendering.
+   */
+  private art(ctx: CanvasRenderingContext2D, view: MapView, picture: { image: CanvasImageSource; width: number; height: number } | null, p: Point): boolean {
+    if (!picture) return false;
+    const w = picture.width * view.zoom, h = picture.height * view.zoom;
+    ctx.globalAlpha = GHOST_ALPHA;
+    ctx.drawImage(picture.image, view.x(p.x) - w / 2, view.y(p.y) - h / 2, w, h);
+    ctx.globalAlpha = 1;
+    return true;
   }
 }
 
@@ -702,6 +735,9 @@ function place(tx: EditTransaction, brush: Brush, p: Point, owner: number, s: Se
 }
 
 /* ── The panel ──────────────────────────────────────────── */
+
+/** How far the preview art is faded, so the map stays readable under it. */
+const GHOST_ALPHA = 0.7;
 
 const LAYER_NAMES: Record<string, string> = { terrain: "Terrain", fog: "Fog of War", doodads: "Doodads", units: "Units", sprites: "Sprites" };
 
@@ -819,8 +855,27 @@ export default function activate(api: PluginApi) {
     if (!session.active) session.start(session.settings.tool);
   };
 
-  api.menu.add("Tools", { label: "Paint…", enabled: () => api.document.isOpen(), run: openPanel });
-  api.contextMenu.add("viewport", { label: "Paint…", run: openPanel });
-  api.hotkeys.add("Ctrl+Shift+P", openPanel);
-  for (const event of ["palette", "layer", "document", "settings"] as const) api.events.on(event, () => session.rebrush());
+  // Named actions, so the menu, the context menu, the hotkey — and another plugin —
+  // all reach the same ones. `paint.tool` takes a tool id: `api.commands.run("paint.tool", "line")`.
+  api.commands.register({ id: "open", title: "Paint…", enabled: () => api.document.isOpen(), run: openPanel });
+  api.commands.register({
+    id: "tool",
+    title: "Paint with a tool",
+    enabled: () => api.document.isOpen(),
+    run: (id) => {
+      const tool = TOOLS.find((t) => t.id === id);
+      if (!tool) { api.ui.status(`Paint: no tool called "${String(id)}"`); return; }
+      openPanel();
+      session.start(tool.id);
+    },
+  });
+
+  api.menu.add("Tools", { label: "Paint…", enabled: () => api.document.isOpen(), command: "open" });
+  api.contextMenu.add("viewport", { label: "Paint…", command: "open" });
+  api.hotkeys.add("Ctrl+Shift+P", { command: "open" });
+  for (const event of ["palette", "layer", "document", "settings"] as const) {
+    api.events.on(event, () => { session.rebrush(); session.wantArt(); });
+  }
+  // A GRP arriving mid-stroke changes what the preview can draw.
+  api.graphics.onImageLoaded(() => session.tool?.redraw());
 }
