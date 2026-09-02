@@ -17,8 +17,8 @@ In scmJS: **Plugins ▸ Manage Plugins…**, paste
 https://github.com/scm-js/plugin-paint
 ```
 
-and press **Add**. It is installed by default, so it is normally already in that list.
-To pin a version, add a ref: `github:scm-js/plugin-paint@v1.0.0`.
+and press **Add**. It is normally already in that list, marked *default* and switched off:
+tick it to turn it on. To pin a version, add a ref: `github:scm-js/plugin-paint@v1.0.0`.
 
 ## Use
 
