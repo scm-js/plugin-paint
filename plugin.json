@@ -1,7 +1,7 @@
 {
   "name": "Paint",
   "id": "paint",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Drawing tools for the map. Draw lines, boxes, circles, freehand and text out of whatever the palette has picked, whether that is terrain, doodads, units, sprites or fog.",
   "author": "Jeany",
   "homepage": "https://github.com/scm-js/plugin-paint",
