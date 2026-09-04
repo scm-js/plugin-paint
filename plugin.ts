@@ -13,10 +13,10 @@
  * `shapes.ts` is the pure geometry: outlines, sampling, fills, tile rasterising and
  * the pixel font; it has its own tests. This file is the panel, the tools and the
  * transaction. Plain DOM only, with a small `h()` builder and a scoped stylesheet.
- * `plugin-api/` is the editor's emitted type declarations, vendored so the repository
- * type-checks alone; the host erases the type-only import.
+ * `@scm-js/plugin-api` is the editor's type declarations, a devDependency generated from
+ * its own `src/plugins/api.ts`; the host erases the type-only import.
  */
-import type { DoodadInfo, EditTransaction, MapPointer, MapToolHandle, MapToolStopReason, MapView, PanelHandle, PluginApi, UnitSize } from "./plugin-api/plugins/api";
+import type { DoodadInfo, EditTransaction, MapPointer, MapToolHandle, MapToolStopReason, MapView, PanelHandle, PluginApi, UnitSize } from "@scm-js/plugin-api";
 import {
   boxFromCenter, cellOf, constrainAngle, constrainSquare, dedupePoints, ellipsePath, fillCells, fillPoints, jitterPoints, linePath, rectPath, samplePath, sprayPoints,
   starPath, strokeCells, textCells, TILE, uniqueCells,
