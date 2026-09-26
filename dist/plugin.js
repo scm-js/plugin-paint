@@ -86,8 +86,8 @@ function ellipsePath(a, b, segments2 = ELLIPSE_SEGMENTS) {
   const rx = Math.abs(b.x - a.x) / 2, ry = Math.abs(b.y - a.y) / 2;
   const points = [];
   for (let i = 0; i < n; i++) {
-    const t = i / n * Math.PI * 2;
-    points.push(pt(cx + rx * Math.cos(t), cy + ry * Math.sin(t)));
+    const t2 = i / n * Math.PI * 2;
+    points.push(pt(cx + rx * Math.cos(t2), cy + ry * Math.sin(t2)));
   }
   return { points, closed: true };
 }
@@ -98,11 +98,11 @@ function starPath(center, radius, points, innerRatio, rotation = 0) {
   const start = -Math.PI / 2 + rotation;
   const step = Math.PI * 2 / n;
   for (let i = 0; i < n; i++) {
-    const t = start + i * step;
-    out.push(pt(center.x + radius * Math.cos(t), center.y + radius * Math.sin(t)));
+    const t2 = start + i * step;
+    out.push(pt(center.x + radius * Math.cos(t2), center.y + radius * Math.sin(t2)));
     if (inner) {
       const r = radius * Math.max(0, innerRatio);
-      out.push(pt(center.x + r * Math.cos(t + step / 2), center.y + r * Math.sin(t + step / 2)));
+      out.push(pt(center.x + r * Math.cos(t2 + step / 2), center.y + r * Math.sin(t2 + step / 2)));
     }
   }
   return { points: out, closed: true };
@@ -157,8 +157,8 @@ function samplePath(path, spacing) {
       segLength = distance(segs[seg][0], segs[seg][1]);
     }
     const [a, b] = segs[seg];
-    const t = segLength === 0 ? 0 : Math.min(1, (d - segStart) / segLength);
-    out.push(pt(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t));
+    const t2 = segLength === 0 ? 0 : Math.min(1, (d - segStart) / segLength);
+    out.push(pt(a.x + (b.x - a.x) * t2, a.y + (b.y - a.y) * t2));
   }
   return out;
 }
@@ -259,8 +259,8 @@ function sprayPoints(center, radius, count, rng) {
   const out = [];
   for (let i = 0; i < count; i++) {
     const r = radius * Math.sqrt(rng());
-    const t = rng() * Math.PI * 2;
-    out.push(pt(center.x + r * Math.cos(t), center.y + r * Math.sin(t)));
+    const t2 = rng() * Math.PI * 2;
+    out.push(pt(center.x + r * Math.cos(t2), center.y + r * Math.sin(t2)));
   }
   return out;
 }
@@ -380,7 +380,95 @@ function textCells(text) {
   return out;
 }
 
+// ko.ts
+var KO = {
+  " ({n} skipped: {why})": " ({n}\uAC1C \uAC74\uB108\uB700: {why})",
+  "Doodads": "\uC7A5\uC2DD\uBB3C",
+  "Ellipse": "\uD0C0\uC6D0",
+  "Erase {n, plural, one {# doodad} other {# doodads}}": "\uC7A5\uC2DD\uBB3C {n}\uAC1C \uC9C0\uC6B0\uAE30",
+  "Erase {n, plural, one {# sprite} other {# sprites}}": "\uC2A4\uD504\uB77C\uC774\uD2B8 {n}\uAC1C \uC9C0\uC6B0\uAE30",
+  "Erase {n, plural, one {# unit} other {# units}}": "\uC720\uB2DB {n}\uAC1C \uC9C0\uC6B0\uAE30",
+  "Eraser": "\uC9C0\uC6B0\uAC1C",
+  "Fill": "\uCC44\uC6B0\uAE30",
+  "Fog of War": "\uC804\uC7A5\uC758 \uC548\uAC1C",
+  "Freehand": "\uC790\uC720 \uACE1\uC120",
+  "Jitter": "\uD769\uB728\uB9AC\uAE30",
+  "Line": "\uC120",
+  "Nothing to paint": "\uADF8\uB9B4 \uAC83\uC774 \uC5C6\uC2B5\uB2C8\uB2E4",
+  "Paint": "\uADF8\uB9AC\uAE30",
+  "Paint with a tool": "\uB3C4\uAD6C\uB85C \uADF8\uB9AC\uAE30",
+  "Paint {tool}: {what}": "\uADF8\uB9AC\uAE30 ({tool}): {what}",
+  "Paint: erased {n}": "\uADF8\uB9AC\uAE30: {n}\uAC1C \uC9C0\uC6C0",
+  'Paint: no tool called "{id}"': '\uADF8\uB9AC\uAE30: "{id}" \uB3C4\uAD6C\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4',
+  "Paint: nothing under the eraser": "\uADF8\uB9AC\uAE30: \uC9C0\uC6B0\uAC1C \uC544\uB798\uC5D0 \uC544\uBB34\uAC83\uB3C4 \uC5C6\uC2B5\uB2C8\uB2E4",
+  "Paint: open a map first": "\uADF8\uB9AC\uAE30: \uBA3C\uC800 \uB9F5\uC744 \uC5EC\uC138\uC694",
+  "Paint: shape dropped": "\uADF8\uB9AC\uAE30: \uB3C4\uD615\uC744 \uBC84\uB838\uC2B5\uB2C8\uB2E4",
+  "Paint: {tool}": "\uADF8\uB9AC\uAE30: {tool}",
+  "Paint: {tool} changed nothing \u2014 {n, plural, one {that tile already is} other {those # tiles already are}} {what}{notes}": "\uADF8\uB9AC\uAE30: {tool} \u2014 \uBC14\uB010 \uAC83\uC774 \uC5C6\uC2B5\uB2C8\uB2E4. \uD0C0\uC77C {n}\uAC1C\uAC00 \uC774\uBBF8 {what}\uC785\uB2C8\uB2E4{notes}",
+  "Paint: {tool} of {what}{skipped}{notes}": "\uADF8\uB9AC\uAE30: {tool} \u2014 {what}{skipped}{notes}",
+  "Paint: {what}": "\uADF8\uB9AC\uAE30: {what}",
+  "Paint\u2026": "\uADF8\uB9AC\uAE30\u2026",
+  "Players": "\uD50C\uB808\uC774\uC5B4",
+  "Polygon": "\uB2E4\uAC01\uD615",
+  "Rectangle": "\uC0AC\uAC01\uD615",
+  "Spacing": "\uAC04\uACA9",
+  "Spray": "\uC2A4\uD504\uB808\uC774",
+  "Sprites": "\uC2A4\uD504\uB77C\uC774\uD2B8",
+  "Star": "\uBCC4",
+  "Terrain": "\uC9C0\uD615",
+  "Text": "\uD14D\uC2A4\uD2B8",
+  "Units": "\uC720\uB2DB",
+  "Width": "\uAD75\uAE30",
+  "a random player": "\uBB34\uC791\uC704 \uD50C\uB808\uC774\uC5B4",
+  "auto: {n}": "\uC790\uB3D9: {n}",
+  "clear fog": "\uC548\uAC1C \uC9C0\uC6B0\uAE30",
+  "click the corners, click the first one again to finish": "\uAF2D\uC9D3\uC810\uC744 \uD074\uB9AD\uD558\uACE0, \uCCAB \uAF2D\uC9D3\uC810\uC744 \uB2E4\uC2DC \uD074\uB9AD\uD558\uBA74 \uB05D\uB0A9\uB2C8\uB2E4",
+  "click where the text starts": "\uD14D\uC2A4\uD2B8\uAC00 \uC2DC\uC791\uD560 \uACF3\uC744 \uD074\uB9AD",
+  "cycle players 1\u20138": "\uD50C\uB808\uC774\uC5B4 1\u20138 \uB3CC\uC544\uAC00\uBA70",
+  "drag a corner to the opposite corner": "\uD55C \uBAA8\uC11C\uB9AC\uC5D0\uC11C \uB9DE\uC740\uD3B8 \uBAA8\uC11C\uB9AC\uB85C \uB4DC\uB798\uADF8",
+  "drag from one end to the other": "\uD55C\uCABD \uB05D\uC5D0\uC11C \uB2E4\uB978 \uCABD \uB05D\uC73C\uB85C \uB4DC\uB798\uADF8",
+  "drag from the centre outwards; the drag sets the size and turns it": "\uC911\uC2EC\uC5D0\uC11C \uBC14\uAE65\uC73C\uB85C \uB4DC\uB798\uADF8. \uB4DC\uB798\uADF8\uB85C \uD06C\uAE30\uC640 \uBC29\uD5A5\uC744 \uC815\uD569\uB2C8\uB2E4",
+  "drag over what to remove": "\uC9C0\uC6B8 \uAC83 \uC704\uB85C \uB4DC\uB798\uADF8",
+  "drag the box the ellipse fits in": "\uD0C0\uC6D0\uC774 \uB4E4\uC5B4\uAC08 \uC0C1\uC790\uB97C \uB4DC\uB798\uADF8",
+  "drag to draw": "\uB4DC\uB798\uADF8\uD574\uC11C \uADF8\uB9AC\uAE30",
+  "drag to scatter": "\uB4DC\uB798\uADF8\uD574\uC11C \uD769\uBFCC\uB9AC\uAE30",
+  "draws a box from its centre.": "\uD0A4: \uC0C1\uC790\uB97C \uC911\uC2EC\uC5D0\uC11C\uBD80\uD130 \uADF8\uB9BD\uB2C8\uB2E4.",
+  "drops the shape in progress; again, or a right-click, leaves the tool. Every stroke is one undo step.": "\uD0A4: \uADF8\uB9AC\uB358 \uB3C4\uD615\uC744 \uBC84\uB9BD\uB2C8\uB2E4. \uD55C \uBC88 \uB354 \uB204\uB974\uAC70\uB098 \uC624\uB978\uCABD \uD074\uB9AD\uD558\uBA74 \uB3C4\uAD6C\uB97C \uB05D\uB0C5\uB2C8\uB2E4. \uD55C \uBC88 \uADF8\uC744 \uB54C\uB9C8\uB2E4 \uC2E4\uD589 \uCDE8\uC18C \uD55C \uB2E8\uACC4\uC785\uB2C8\uB2E4.",
+  "filled": "\uC18D \uCC44\uC6C0",
+  "fog": "\uC548\uAC1C",
+  "grid": "\uACA9\uC790",
+  "no map is open": "\uC5F4\uB9B0 \uB9F5\uC774 \uC5C6\uC2B5\uB2C8\uB2E4",
+  "off the map": "\uB9F5 \uBC14\uAE65",
+  "pick a doodad in the palette": "\uD314\uB808\uD2B8\uC5D0\uC11C \uC7A5\uC2DD\uBB3C\uC744 \uACE0\uB974\uC138\uC694",
+  "pick a tool": "\uB3C4\uAD6C\uB97C \uACE0\uB974\uC138\uC694",
+  "placement checks refused them": "\uBC30\uCE58 \uAC80\uC0AC\uC5D0\uC11C \uAC70\uBD80\uB428",
+  "points": "\uAF2D\uC9D3\uC810",
+  "polygon": "\uB2E4\uAC01\uD615",
+  "random": "\uBB34\uC791\uC704",
+  "skip ones the placement checks refuse": "\uBC30\uCE58 \uAC80\uC0AC\uC5D0\uC11C \uAC70\uBD80\uB418\uB294 \uAC83\uC740 \uAC74\uB108\uB6F0\uAE30",
+  "squares a box, rounds an ellipse, snaps a line to 45\xB0.": "\uD0A4: \uC0C1\uC790\uB294 \uC815\uC0AC\uAC01\uD615, \uD0C0\uC6D0\uC740 \uC6D0\uC73C\uB85C \uB9CC\uB4E4\uACE0 \uC120\uC740 45\xB0 \uB2E8\uC704\uB85C \uB9DE\uCDA5\uB2C8\uB2E4.",
+  "staggered": "\uC5C7\uAC08\uB9B0 \uACA9\uC790",
+  "switch to the Terrain, Doodads, Units, Sprites or Fog of War layer": "\uC9C0\uD615, \uC7A5\uC2DD\uBB3C, \uC720\uB2DB, \uC2A4\uD504\uB77C\uC774\uD2B8, \uC804\uC7A5\uC758 \uC548\uAC1C \uB808\uC774\uC5B4 \uC911 \uD558\uB098\uB85C \uBC14\uAFB8\uC138\uC694",
+  "terrain {n}": "\uC9C0\uD615 {n}",
+  "the palette's player": "\uD314\uB808\uD2B8\uC758 \uD50C\uB808\uC774\uC5B4",
+  "tile {n}": "\uD0C0\uC77C {n}",
+  "tile {n} ({label})": "\uD0C0\uC77C {n} ({label})",
+  "type here, then click the map": "\uC5EC\uAE30\uC5D0 \uC785\uB825\uD55C \uB4A4 \uB9F5\uC744 \uD074\uB9AD\uD558\uC138\uC694",
+  "what the {layer} palette has picked": "{layer} \uD314\uB808\uD2B8\uC5D0\uC11C \uACE0\uB978 \uAC83",
+  "{mode} for every player": "{mode}: \uBAA8\uB4E0 \uD50C\uB808\uC774\uC5B4",
+  "{mode} for nobody": "{mode}: \uD50C\uB808\uC774\uC5B4 \uC5C6\uC74C",
+  "{mode} for {n, plural, one {player {list}} other {players {list}}}": "{mode}: \uD50C\uB808\uC774\uC5B4 {list}",
+  "{n, plural, one {# tile} other {# tiles}}": "\uD0C0\uC77C {n}\uAC1C",
+  "{n, plural, one {# tile} other {# tiles}} / pixel": "\uD53D\uC140\uB2F9 \uD0C0\uC77C {n}\uAC1C",
+  "{name} \xB7 Player {n}": "{name} \xB7 \uD50C\uB808\uC774\uC5B4 {n}",
+  "{name} \xB7 Player {n} \xB7 flipped": "{name} \xB7 \uD50C\uB808\uC774\uC5B4 {n} \xB7 \uB4A4\uC9D1\uD798",
+  "{n} \xD7 {what}": "{what} \xD7 {n}"
+};
+
 // plugin.ts
+var t = (text, _params) => text;
+var msg = (text) => text;
+var translate = (text) => text;
 function h(tag, props = null, ...children) {
   const el = document.createElement(tag);
   if (props) {
@@ -421,17 +509,17 @@ var STYLE = `
 .pnt .pnt-keys kbd { font-family: inherit; color: var(--text-dim, #99a2b3); }
 `;
 var TOOLS = [
-  { id: "freehand", label: "Freehand", glyph: "\u270E", hint: "drag to draw" },
-  { id: "line", label: "Line", glyph: "\u2571", hint: "drag from one end to the other" },
-  { id: "rect", label: "Rectangle", glyph: "\u25AD", hint: "drag a corner to the opposite corner" },
-  { id: "ellipse", label: "Ellipse", glyph: "\u25EF", hint: "drag the box the ellipse fits in" },
-  { id: "polygon", label: "Polygon", glyph: "\u2B20", hint: "click the corners, click the first one again to finish" },
-  { id: "star", label: "Star", glyph: "\u2605", hint: "drag from the centre outwards; the drag sets the size and turns it" },
-  { id: "spray", label: "Spray", glyph: "\u2058", hint: "drag to scatter" },
-  { id: "text", label: "Text", glyph: "A", hint: "click where the text starts" },
-  { id: "eraser", label: "Eraser", glyph: "\u232B", hint: "drag over what to remove" }
+  { id: "freehand", label: msg("Freehand"), glyph: "\u270E", hint: msg("drag to draw") },
+  { id: "line", label: msg("Line"), glyph: "\u2571", hint: msg("drag from one end to the other") },
+  { id: "rect", label: msg("Rectangle"), glyph: "\u25AD", hint: msg("drag a corner to the opposite corner") },
+  { id: "ellipse", label: msg("Ellipse"), glyph: "\u25EF", hint: msg("drag the box the ellipse fits in") },
+  { id: "polygon", label: msg("Polygon"), glyph: "\u2B20", hint: msg("click the corners, click the first one again to finish") },
+  { id: "star", label: msg("Star"), glyph: "\u2605", hint: msg("drag from the centre outwards; the drag sets the size and turns it") },
+  { id: "spray", label: msg("Spray"), glyph: "\u2058", hint: msg("drag to scatter") },
+  { id: "text", label: msg("Text"), glyph: "A", hint: msg("click where the text starts") },
+  { id: "eraser", label: msg("Eraser"), glyph: "\u232B", hint: msg("drag over what to remove") }
 ];
-var TOOL_BY_ID = Object.fromEntries(TOOLS.map((t) => [t.id, t]));
+var TOOL_BY_ID = Object.fromEntries(TOOLS.map((t2) => [t2.id, t2]));
 var CLOSED = /* @__PURE__ */ new Set(["rect", "ellipse", "polygon", "star"]);
 var DEFAULTS = {
   tool: "line",
@@ -454,7 +542,7 @@ function loadSettings(api) {
 }
 var hex = (packed) => packed === null ? null : `#${packed.toString(16).padStart(6, "0")}`;
 function brushOf(api) {
-  if (!api.document.isOpen()) return { kind: "none", label: "no map is open", color: null };
+  if (!api.document.isOpen()) return { kind: "none", label: t("no map is open"), color: null };
   const layer = api.selection.layer();
   const pick = api.palette.active();
   switch (layer) {
@@ -462,29 +550,30 @@ function brushOf(api) {
       const b = api.terrain.active();
       if (b.mode === "tile") {
         const info = api.terrain.tileInfo(b.tile);
-        return { kind: "terrain", label: info ? `tile ${b.tile} (${info.label})` : `tile ${b.tile}`, color: hex(api.terrain.color(b.tile)), terrainId: b.terrain, tile: b.tile, useTile: true };
+        return { kind: "terrain", label: info ? t("tile {n} ({label})", { n: b.tile, label: info.label }) : t("tile {n}", { n: b.tile }), color: hex(api.terrain.color(b.tile)), terrainId: b.terrain, tile: b.tile, useTile: true };
       }
-      const type = api.terrain.types().find((t) => t.id === b.terrain);
-      return { kind: "terrain", label: type?.name ?? `terrain ${b.terrain}`, color: hex(api.terrain.terrainColor(b.terrain)), terrainId: b.terrain, tile: b.tile, useTile: false };
+      const type = api.terrain.types().find((t2) => t2.id === b.terrain);
+      return { kind: "terrain", label: type?.name ?? t("terrain {n}", { n: b.terrain }), color: hex(api.terrain.terrainColor(b.terrain)), terrainId: b.terrain, tile: b.tile, useTile: false };
     }
     case "fog": {
       const players = [];
       for (let i = 0; i < 8; i++) if (pick.fogPlayers & 1 << i) players.push(i + 1);
-      const who = players.length === 0 ? "nobody" : players.length === 8 ? "every player" : `player${players.length > 1 ? "s" : ""} ${players.join(", ")}`;
-      return { kind: "fog", label: `${pick.fogMode === "fog" ? "fog" : "clear fog"} for ${who}`, color: null, players: pick.fogPlayers, mode: pick.fogMode };
+      const mode = pick.fogMode === "fog" ? t("fog") : t("clear fog");
+      const label = players.length === 0 ? t("{mode} for nobody", { mode }) : players.length === 8 ? t("{mode} for every player", { mode }) : t("{mode} for {n, plural, one {player {list}} other {players {list}}}", { mode, n: players.length, list: players.join(", ") });
+      return { kind: "fog", label, color: null, players: pick.fogPlayers, mode: pick.fogMode };
     }
     case "doodads": {
       const info = pick.doodad >= 0 ? api.palette.doodadInfo(pick.doodad) : null;
-      if (!info) return { kind: "none", label: "pick a doodad in the palette", color: null };
+      if (!info) return { kind: "none", label: t("pick a doodad in the palette"), color: null };
       return { kind: "doodad", label: info.name, color: null, info };
     }
     case "units":
-      return { kind: "unit", label: `${api.palette.unitName(pick.unit)} \xB7 Player ${pick.owner + 1}`, color: api.palette.playerColor(pick.owner), unitId: pick.unit, owner: pick.owner, size: api.palette.unitSize(pick.unit) };
+      return { kind: "unit", label: t("{name} \xB7 Player {n}", { name: api.palette.unitName(pick.unit), n: pick.owner + 1 }), color: api.palette.playerColor(pick.owner), unitId: pick.unit, owner: pick.owner, size: api.palette.unitSize(pick.unit) };
     case "sprites": {
       const id = pick.spriteKind === "pure" ? pick.sprite : pick.unitSprite;
       return {
         kind: "sprite",
-        label: `${api.palette.spriteName(pick.spriteKind, id)} \xB7 Player ${pick.owner + 1}${pick.spriteFlipped ? " \xB7 flipped" : ""}`,
+        label: pick.spriteFlipped ? t("{name} \xB7 Player {n} \xB7 flipped", { name: api.palette.spriteName(pick.spriteKind, id), n: pick.owner + 1 }) : t("{name} \xB7 Player {n}", { name: api.palette.spriteName(pick.spriteKind, id), n: pick.owner + 1 }),
         color: api.palette.playerColor(pick.owner),
         spriteKind: pick.spriteKind,
         id,
@@ -494,7 +583,7 @@ function brushOf(api) {
       };
     }
     default:
-      return { kind: "none", label: "switch to the Terrain, Doodads, Units, Sprites or Fog of War layer", color: null };
+      return { kind: "none", label: t("switch to the Terrain, Doodads, Units, Sprites or Fog of War layer"), color: null };
   }
 }
 var paintsCells = (b) => b.kind === "terrain" || b.kind === "fog";
@@ -513,10 +602,10 @@ function mulberry32(seed) {
   let a = seed >>> 0;
   return () => {
     a = a + 1831565813 >>> 0;
-    let t = a;
-    t = Math.imul(t ^ t >>> 15, t | 1);
-    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    let t2 = a;
+    t2 = Math.imul(t2 ^ t2 >>> 15, t2 | 1);
+    t2 ^= t2 + Math.imul(t2 ^ t2 >>> 7, t2 | 61);
+    return ((t2 ^ t2 >>> 14) >>> 0) / 4294967296;
   };
 }
 function render(tool, drawing, brush, s, width, height, seed) {
@@ -597,7 +686,7 @@ var Session = class {
     this.settings.tool = id;
     this.save();
     if (!this.api.document.isOpen()) {
-      this.api.ui.status("Paint: open a map first");
+      this.api.ui.status(t("Paint: open a map first"));
       this.notify();
       return;
     }
@@ -606,8 +695,8 @@ var Session = class {
     this.hover = null;
     const def = TOOL_BY_ID[id];
     this.tool = this.api.ui.mapTool({
-      name: `Paint: ${def.label}`,
-      hint: def.hint,
+      name: t("Paint: {tool}", { tool: translate(def.label) }),
+      hint: translate(def.hint),
       onDown: (p) => this.onDown(p),
       onMove: (p) => this.onMove(p),
       onUp: (p) => this.onUp(p),
@@ -634,7 +723,7 @@ var Session = class {
   /* ── pointer ── */
   onDown(p) {
     if (this.brush.kind === "none") {
-      this.api.ui.status(`Paint: ${this.brush.label}`);
+      this.api.ui.status(t("Paint: {what}", { what: this.brush.label }));
       return;
     }
     const at = { x: p.px, y: p.py };
@@ -694,7 +783,7 @@ var Session = class {
     if (this.gesture || this.corners.length > 0) {
       this.gesture = null;
       this.corners = [];
-      this.api.ui.status("Paint: shape dropped");
+      this.api.ui.status(t("Paint: shape dropped"));
       this.tool?.redraw();
       return true;
     }
@@ -822,16 +911,17 @@ var Session = class {
       if (!e) return;
       const n = e.units.length + e.sprites.length + e.doodads.length;
       if (n === 0) {
-        this.api.ui.status("Paint: nothing under the eraser");
+        this.api.ui.status(t("Paint: nothing under the eraser"));
         this.tool?.redraw();
         return;
       }
-      this.api.document.edit(`Erase ${n} ${brush.kind === "unit" ? "unit" : brush.kind === "sprite" ? "sprite" : "doodad"}${n === 1 ? "" : "s"}`, (tx) => {
+      const what2 = brush.kind === "unit" ? t("Erase {n, plural, one {# unit} other {# units}}", { n }) : brush.kind === "sprite" ? t("Erase {n, plural, one {# sprite} other {# sprites}}", { n }) : t("Erase {n, plural, one {# doodad} other {# doodads}}", { n });
+      this.api.document.edit(what2, (tx) => {
         if (e.units.length) tx.removeUnits(e.units);
         if (e.sprites.length) tx.removeSprites(e.sprites);
         if (e.doodads.length) tx.removeDoodads(e.doodads);
       });
-      this.api.ui.status(`Paint: erased ${n}`);
+      this.api.ui.status(t("Paint: erased {n}", { n }));
       this.tool?.redraw();
       return;
     }
@@ -844,7 +934,8 @@ var Session = class {
     const width = this.api.document.info()?.width ?? 0;
     let placed = 0;
     let skipped = 0;
-    const label = `Paint ${def.label.toLowerCase()}: ${brush.label}`;
+    const toolName = translate(def.label).toLowerCase();
+    const label = t("Paint {tool}: {what}", { tool: toolName, what: brush.label });
     const result = this.api.document.edit(label, (tx) => {
       if (brush.kind === "terrain") {
         const cells = r.cells.map((c) => c.y * width + c.x);
@@ -858,11 +949,12 @@ var Session = class {
         });
       }
     });
-    const what = paintsCells(brush) ? `${placed} tile${placed === 1 ? "" : "s"}` : `${placed} \xD7 ${brush.label}`;
-    const why = brush.kind === "unit" ? "placement checks refused them" : "off the map";
+    const what = paintsCells(brush) ? t("{n, plural, one {# tile} other {# tiles}}", { n: placed }) : t("{n} \xD7 {what}", { n: placed, what: brush.label });
+    const why = brush.kind === "unit" ? t("placement checks refused them") : t("off the map");
     const notes = result.notes.length > 0 ? ` \u2014 ${result.notes.join(", ")}` : "";
-    if (!result.changed && paintsCells(brush)) this.api.ui.status(`Paint: ${def.label.toLowerCase()} changed nothing \u2014 those ${count} tiles already are ${brush.label}${notes}`);
-    else this.api.ui.status(`Paint: ${def.label.toLowerCase()} of ${what}${skipped > 0 ? ` (${skipped} skipped: ${why})` : ""}${notes}`);
+    const skip = skipped > 0 ? t(" ({n} skipped: {why})", { n: skipped, why }) : "";
+    if (!result.changed && paintsCells(brush)) this.api.ui.status(t("Paint: {tool} changed nothing \u2014 {n, plural, one {that tile already is} other {those # tiles already are}} {what}{notes}", { tool: toolName, n: count, what: brush.label, notes }));
+    else this.api.ui.status(t("Paint: {tool} of {what}{skipped}{notes}", { tool: toolName, what, skipped: skip, notes }));
     this.tool?.redraw();
   }
   /* ── the overlay ── */
@@ -936,7 +1028,7 @@ var Session = class {
     }
     this.drawRendered(ctx, view, g.preview, color);
     const n = paintsCells(brush) ? g.preview.cells.length : g.preview.points.length;
-    const label = paintsCells(brush) ? `${n} tile${n === 1 ? "" : "s"}` : `${n} \xD7 ${brush.label}`;
+    const label = paintsCells(brush) ? t("{n, plural, one {# tile} other {# tiles}}", { n }) : t("{n} \xD7 {what}", { n, what: brush.label });
     ctx.font = `10px ${getComputedStyle(document.body).getPropertyValue("--font-mono") || "monospace"}`;
     const tw = ctx.measureText(label).width;
     const lx = view.x(g.to.x) + 12, ly = view.y(g.to.y) + 12;
@@ -1027,7 +1119,7 @@ function place(tx, brush, p, owner, s) {
   }
 }
 var GHOST_ALPHA = 0.7;
-var LAYER_NAMES = { terrain: "Terrain", fog: "Fog of War", doodads: "Doodads", units: "Units", sprites: "Sprites" };
+var LAYER_NAMES = { terrain: msg("Terrain"), fog: msg("Fog of War"), doodads: msg("Doodads"), units: msg("Units"), sprites: msg("Sprites") };
 function mountPanel(session, body) {
   const s = session.settings;
   const api = session.api;
@@ -1037,14 +1129,14 @@ function mountPanel(session, body) {
   const brushHint = h("span", { className: "pnt-dim" });
   const brushBox = h("div", { className: "pnt-brush" }, h("div", null, swatch, brushName), brushHint);
   const toolButtons = /* @__PURE__ */ new Map();
-  const tools = h("div", { className: "pnt-tools" }, ...TOOLS.map((t) => {
+  const tools = h("div", { className: "pnt-tools" }, ...TOOLS.map((tool) => {
     const b = h(
       "button",
-      { className: "pnt-tool", type: "button", title: t.hint, onClick: () => session.active === t.id ? session.stop() : session.start(t.id) },
-      h("span", { className: "pnt-glyph" }, t.glyph),
-      t.label
+      { className: "pnt-tool", type: "button", title: translate(tool.hint), onClick: () => session.active === tool.id ? session.stop() : session.start(tool.id) },
+      h("span", { className: "pnt-glyph" }, tool.glyph),
+      translate(tool.label)
     );
-    toolButtons.set(t.id, b);
+    toolButtons.set(tool.id, b);
     return b;
   }));
   const row = (label, ...inputs) => h("div", { className: "pnt-row" }, h("label", null, label), h("div", { className: "pnt-in" }, ...inputs));
@@ -1062,28 +1154,28 @@ function mountPanel(session, body) {
     { onChange: change(() => {
       s.pattern = pattern.value;
     }) },
-    h("option", { value: "grid" }, "grid"),
-    h("option", { value: "staggered" }, "staggered"),
-    h("option", { value: "random" }, "random")
+    h("option", { value: "grid" }, t("grid")),
+    h("option", { value: "staggered" }, t("staggered")),
+    h("option", { value: "random" }, t("random"))
   );
   pattern.value = s.pattern;
-  const filledRow = row("Fill", h("label", { className: "pnt-check" }, filled, "filled"), pattern);
+  const filledRow = row(t("Fill"), h("label", { className: "pnt-check" }, filled, t("filled")), pattern);
   const spacing = h("input", { type: "number", min: 0, max: 512, step: 1, value: s.spacing, onChange: change(() => {
     s.spacing = Math.max(0, Number(spacing.value) || 0);
     spacing.value = String(s.spacing);
   }) });
   const spacingAuto = h("span", { className: "pnt-dim" });
-  const spacingRow = row("Spacing", spacing, h("span", { className: "pnt-dim" }, "px"), spacingAuto);
+  const spacingRow = row(t("Spacing"), spacing, h("span", { className: "pnt-dim" }, "px"), spacingAuto);
   const jitter = h("input", { type: "range", min: 0, max: 100, step: 5, value: s.jitter, onInput: change(() => {
     s.jitter = Number(jitter.value);
   }) });
   const jitterOut = h("output");
-  const jitterRow = row("Jitter", jitter, jitterOut);
+  const jitterRow = row(t("Jitter"), jitter, jitterOut);
   const width = h("input", { type: "range", min: 1, max: 9, step: 1, value: s.width, onInput: change(() => {
     s.width = Number(width.value);
   }) });
   const widthOut = h("output");
-  const widthRow = row("Width", width, widthOut);
+  const widthRow = row(t("Width"), width, widthOut);
   const starPoints = h("input", { type: "number", min: 3, max: 24, step: 1, value: s.starPoints, onChange: change(() => {
     s.starPoints = Math.min(24, Math.max(3, Math.round(Number(starPoints.value) || 5)));
     starPoints.value = String(s.starPoints);
@@ -1092,35 +1184,40 @@ function mountPanel(session, body) {
     s.starInner = Number(starInner.value) / 100;
   }) });
   const starOut = h("output");
-  const starRow = row("Star", starPoints, h("span", { className: "pnt-dim" }, "points"), starInner, starOut);
-  const text = h("input", { type: "text", value: s.text, placeholder: "type here, then click the map", spellcheck: false, onInput: change(() => {
+  const starRow = row(t("Star"), starPoints, h("span", { className: "pnt-dim" }, t("points")), starInner, starOut);
+  const text = h("input", { type: "text", value: s.text, placeholder: t("type here, then click the map"), spellcheck: false, onInput: change(() => {
     s.text = text.value;
   }) });
-  const textRow = row("Text", text);
+  const textRow = row(t("Text"), text);
   const owners = h(
     "select",
     { onChange: change(() => {
       s.owners = owners.value;
     }) },
-    h("option", { value: "palette" }, "the palette's player"),
-    h("option", { value: "cycle" }, "cycle players 1\u20138"),
-    h("option", { value: "random" }, "a random player")
+    h("option", { value: "palette" }, t("the palette's player")),
+    h("option", { value: "cycle" }, t("cycle players 1\u20138")),
+    h("option", { value: "random" }, t("a random player"))
   );
   owners.value = s.owners;
-  const ownersRow = row("Players", owners);
+  const ownersRow = row(t("Players"), owners);
   const check = h("input", { type: "checkbox", checked: s.checkPlacement, onChange: change(() => {
     s.checkPlacement = check.checked;
   }) });
-  const checkRow = row("Units", h("label", { className: "pnt-check" }, check, "skip ones the placement checks refuse"));
+  const checkRow = row(t("Units"), h("label", { className: "pnt-check" }, check, t("skip ones the placement checks refuse")));
   const keys = h(
     "div",
     { className: "pnt-keys" },
     h("kbd", null, "Shift"),
-    " squares a box, rounds an ellipse, snaps a line to 45\xB0. ",
+    " ",
+    t("squares a box, rounds an ellipse, snaps a line to 45\xB0."),
+    " ",
     h("kbd", null, "Alt"),
-    " draws a box from its centre. ",
+    " ",
+    t("draws a box from its centre."),
+    " ",
     h("kbd", null, "Esc"),
-    " drops the shape in progress; again, or a right-click, leaves the tool. Every stroke is one undo step."
+    " ",
+    t("drops the shape in progress; again, or a right-click, leaves the tool. Every stroke is one undo step.")
   );
   body.append(h("div", { className: "pnt" }, brushBox, tools, filledRow, spacingRow, jitterRow, widthRow, starRow, textRow, ownersRow, checkRow, keys));
   const update = () => {
@@ -1131,8 +1228,8 @@ function mountPanel(session, body) {
     const layer = api.selection.layer();
     swatch.style.background = brush.color ?? "transparent";
     swatch.style.visibility = brush.color ? "visible" : "hidden";
-    brushName.textContent = brush.kind === "none" ? "Nothing to paint" : brush.label;
-    brushHint.textContent = brush.kind === "none" ? brush.label : `what the ${LAYER_NAMES[layer] ?? layer} palette has picked${active ? ` \xB7 ${TOOL_BY_ID[active].hint}` : " \xB7 pick a tool"}`;
+    brushName.textContent = brush.kind === "none" ? t("Nothing to paint") : brush.label;
+    brushHint.textContent = brush.kind === "none" ? brush.label : `${t("what the {layer} palette has picked", { layer: LAYER_NAMES[layer] ? translate(LAYER_NAMES[layer]) : layer })} \xB7 ${active ? translate(TOOL_BY_ID[active].hint) : t("pick a tool")}`;
     for (const [id, b] of toolButtons) b.classList.toggle("on", active === id);
     const objects = !cells && brush.kind !== "none";
     const on = (el, yes) => el.classList.toggle("off", !yes);
@@ -1145,10 +1242,10 @@ function mountPanel(session, body) {
     on(textRow, tool === "text");
     on(ownersRow, brush.kind === "unit" || brush.kind === "sprite");
     on(checkRow, brush.kind === "unit");
-    spacingAuto.textContent = s.spacing > 0 ? "" : `auto: ${autoSpacing(brush)}`;
+    spacingAuto.textContent = s.spacing > 0 ? "" : t("auto: {n}", { n: autoSpacing(brush) });
     jitterOut.textContent = `${s.jitter}%`;
-    widthOut.textContent = cells && tool === "text" ? `${s.width} tile${s.width === 1 ? "" : "s"} / pixel` : `${s.width} tile${s.width === 1 ? "" : "s"}`;
-    starOut.textContent = s.starInner >= 1 ? "polygon" : `${Math.round(s.starInner * 100)}%`;
+    widthOut.textContent = cells && tool === "text" ? t("{n, plural, one {# tile} other {# tiles}} / pixel", { n: s.width }) : t("{n, plural, one {# tile} other {# tiles}}", { n: s.width });
+    starOut.textContent = s.starInner >= 1 ? t("polygon") : `${Math.round(s.starInner * 100)}%`;
   };
   session.refresh.push(update);
   update();
@@ -1157,13 +1254,25 @@ function mountPanel(session, body) {
   };
 }
 function activate(api) {
+  api.i18n.register({ ko: KO });
+  t = (text, params) => api.i18n.t(text, params);
+  translate = (text) => api.i18n.t(text);
   const session = new Session(api);
+  let mounted = null;
+  const mount = (body) => {
+    body.replaceChildren();
+    mounted = { body, cleanup: mountPanel(session, body) };
+    return () => {
+      mounted?.cleanup();
+      mounted = null;
+    };
+  };
   const openPanel = () => {
     if (session.panel?.isOpen()) return;
     session.panel = api.ui.panel({
-      title: "Paint",
+      title: t("Paint"),
       width: 292,
-      mount: (body) => mountPanel(session, body),
+      mount,
       onClose: () => {
         session.panel = null;
         session.stop();
@@ -1171,23 +1280,23 @@ function activate(api) {
     });
     if (!session.active) session.start(session.settings.tool);
   };
-  api.commands.register({ id: "open", title: "Paint\u2026", enabled: () => api.document.isOpen(), run: openPanel });
+  api.commands.register({ id: "open", title: msg("Paint\u2026"), enabled: () => api.document.isOpen(), run: openPanel });
   api.commands.register({
     id: "tool",
-    title: "Paint with a tool",
+    title: msg("Paint with a tool"),
     enabled: () => api.document.isOpen(),
     run: (id) => {
-      const tool = TOOLS.find((t) => t.id === id);
+      const tool = TOOLS.find((t2) => t2.id === id);
       if (!tool) {
-        api.ui.status(`Paint: no tool called "${String(id)}"`);
+        api.ui.status(t('Paint: no tool called "{id}"', { id: String(id) }));
         return;
       }
       openPanel();
       session.start(tool.id);
     }
   });
-  api.menu.add("Tools", { label: "Paint\u2026", enabled: () => api.document.isOpen(), command: "open" });
-  api.contextMenu.add("viewport", { label: "Paint\u2026", command: "open" });
+  api.menu.add("Tools", { label: msg("Paint\u2026"), enabled: () => api.document.isOpen(), command: "open" });
+  api.contextMenu.add("viewport", { label: msg("Paint\u2026"), command: "open" });
   api.hotkeys.add("Ctrl+Shift+P", { command: "open" });
   for (const event of ["palette", "layer", "document", "settings"]) {
     api.events.on(event, () => {
@@ -1195,6 +1304,15 @@ function activate(api) {
       session.wantArt();
     });
   }
+  api.events.on("language", () => {
+    session.rebrush();
+    session.panel?.setTitle(t("Paint"));
+    if (mounted) {
+      mounted.cleanup();
+      mount(mounted.body);
+    }
+    if (session.tool?.isActive()) session.start(session.settings.tool);
+  });
   api.graphics.onImageLoaded(() => session.tool?.redraw());
 }
 export {
