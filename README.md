@@ -1,81 +1,87 @@
 # Paint
 
 A plugin for [scmJS](https://github.com/scm-js/scm-js), the browser-based StarCraft 1 /
-Brood War map editor. It draws shapes out of the map's own pieces.
+Brood War map editor. It draws lines, shapes, sprays and text out of the map's own pieces.
 
-Pick a tool in the Paint panel and draw on the map. Whatever the active layer's palette
-has picked is what gets laid down: flat terrain or a single tile, a doodad, a unit for a
-player, a sprite, or fog of war for some players. Draw a line of Photon Cannons, fill an
-ellipse with Zerglings, ring a base with a staggered grid of Missile Turrets, write "GG"
-in Mineral Fields, or carve a star into the high ground. Every stroke is one undo step.
+You pick a tool and draw on the map. What gets laid down is whatever the active layer's
+palette has picked:
 
-The preview under the pointer is the real thing: units, sprites and doodads are drawn with
-the graphics the map itself draws them with, so you see the shape you are about to lay down
-before you let go.
+- flat terrain or a single tile
+- a doodad
+- a unit for a player
+- a sprite
+- fog of war for some players
+
+You can draw a line of Photon Cannons, fill an ellipse with Zerglings, or write "GG" in
+Mineral Fields. The preview under the pointer uses the map's own graphics, so you see the
+result before you let go. Every stroke is one undo step.
 
 ## Install
 
-In scmJS: **Plugins ▸ Manage Plugins…**, paste
+Paint comes with the editor and is on by default. If you turned it off, tick it on again
+in Plugins ▸ **Manage Plugins…**.
+
+To add it by hand, open Plugins ▸ **Manage Plugins…**, paste
 
 ```
 https://github.com/scm-js/plugin-paint
 ```
 
-and press **Add**. It is normally already in that list, marked *default* and switched off:
-tick it to turn it on. To pin a version, add a ref: `github:scm-js/plugin-paint@v1.0.0`.
+and press **Add**. To pin a version, add a tag: `github:scm-js/plugin-paint@v1.1.0`.
 
 ## Use
 
-**Tools ▸ Paint…** (also `Ctrl+Shift+P`, or *Paint…* on the map's right-click menu) opens
-the panel. It floats over the map and does not block it; drag it by its title bar.
+Open the panel with Tools ▸ **Paint…**, Ctrl+Shift+P, or **Paint…** in the map's
+right-click menu. The panel floats over the map and does not block it. Drag it by its
+title bar.
 
-The top of the panel says what will be painted, which is what the active layer's palette
-has picked: choose a unit and a player on the Units layer, a doodad on the Doodads layer,
-a terrain or a tile on the Terrain layer, and so on. Switch layers and the brush follows.
+The top of the panel says what will be painted. Choose a unit and a player on the Units
+layer, a doodad on the Doodads layer, a terrain or a tile on the Terrain layer, and so on.
+When you switch layers, the brush follows.
 
 | Tool | What you do |
 | --- | --- |
 | Freehand | Drag. |
 | Line | Drag from one end to the other. Shift snaps to 45°. |
-| Rectangle, Ellipse | Drag a corner to the opposite corner. Shift makes it square or round; Alt draws from the centre. |
-| Polygon | Click the corners; click the first corner again (or double-click) to finish. |
-| Star | Drag from the centre outwards. The drag sets the size and turns the star. *Points* and the inner radius are in the panel; an inner radius of 100% is a regular polygon. |
-| Spray | Drag to scatter. *Width* is the radius. |
-| Text | Type in the panel, then click where the text starts. Letters are a 5 × 7 dot font, one object (or one tile) per dot. |
-| Eraser | Drag over units, sprites or doodads to remove them (the layer's kind). *Width* is the radius. |
+| Rectangle, Ellipse | Drag from corner to corner. Shift makes it square or round. Alt draws from the centre. |
+| Polygon | Click the corners. Click the first corner again, or double-click, to finish. |
+| Star | Drag from the centre outwards. The drag sets the size and turns the star. The number of points and the inner radius are in the panel. An inner radius of 100% gives a regular polygon. |
+| Spray | Drag to scatter. **Width** is the radius. |
+| Text | Type in the panel, then click where the text starts. Letters use a 5 × 7 dot font, with one object (or one tile) per dot. |
+| Eraser | Drag over units, sprites or doodads to remove them. It removes the active layer's kind. **Width** is the radius. |
 
-Options:
+The panel's options:
 
-- **Filled** fills a rectangle, ellipse, polygon or star. Objects fill in a grid, a
-  staggered (hex) grid, or at random.
-- **Spacing** is the distance between objects along a shape, in pixels. *Auto* uses the
-  object's own size, so buildings do not overlap and small units stand shoulder to shoulder.
-- **Jitter** moves each object a little way off its spot, for a natural look.
-- **Width** is the brush width in tiles for terrain and fog, the eraser's and the spray's
-  radius, and the size of one text dot on those layers.
-- **Players** paints units and sprites for the palette's player, or cycles through
-  players 1–8 along the shape, or picks a random one for each.
-- **Units** can skip the spots the Units palette's placement checks refuse (a unit already
-  there, ground the unit cannot stand on), with the same options the palette uses.
+- **Fill** fills a rectangle, ellipse, polygon or star. Objects fill in a grid, a staggered
+  grid, or at random.
+- **Spacing** is the distance between objects along a shape, in pixels. Auto uses the
+  object's own size, so buildings do not overlap and small units stand side by side.
+- **Jitter** moves each object a little off its spot, so the shape looks less regular.
+- **Width** is the brush width in tiles for terrain and fog. It is also the radius of the
+  eraser and the spray, and the size of one text dot on those layers.
+- **Players** paints units and sprites for the palette's player, cycles through players
+  1 to 8 along the shape, or picks a random player for each.
+- For units, the panel can skip spots the placement checks refuse, such as a spot where a
+  unit already stands or ground the unit cannot stand on. It uses the same checks as the
+  Units palette.
 
-`Esc` drops the shape in progress; `Esc` again, or a right-click, leaves the tool. Terrain
-is painted as flat tiles, like the Rect brush, so run Rebuild ISOM from Tiles afterwards
-if you want the isometric brush back on that ground.
+Esc drops the shape in progress. Esc again, or a right-click, leaves the tool.
 
-## Layout
+Terrain is painted as flat tiles, like the Rect brush. To use the isometric brush on that
+ground again afterwards, run Tools ▸ **Repair Map…** (from the Repair plugin), which
+rebuilds the isometric record from the tiles.
 
-| | |
+## Files
+
+| File | What it is |
 | --- | --- |
-| `plugin.json` | the manifest the editor reads (name, version, `entry`, `icon`, the API version it needs) |
-| `plugin.ts` | `activate(api)`: the panel, the tools, the preview overlay, the transaction |
-| `shapes.ts` | the pure geometry: outlines, sampling along and inside them, tile rasterising, text layout |
-| `font.ts` | the 5 × 7 dot font |
-| `dist/plugin.js` | the bundle the editor loads; `npm run build` writes it, CI commits it |
-| `tests/` | vitest over `shapes.ts` |
-
-Types come from [`@scm-js/plugin-api`](https://github.com/scm-js/plugin-api), a devDependency
-generated from the editor's own `src/plugins/api.ts`; `npm update @scm-js/plugin-api` takes the
-newest contract.
+| `plugin.json` | The manifest the editor reads. |
+| `plugin.ts` | The panel, the tools, the preview and the edits to the map. |
+| `shapes.ts` | The geometry: outlines, points along and inside them, tiles, and text layout. |
+| `font.ts` | The 5 × 7 dot font. |
+| `ko.ts` | The Korean for the words the plugin shows. |
+| `dist/plugin.js` | The bundle the editor loads. `npm run build` writes it and CI commits it. |
+| `tests/` | Tests of `shapes.ts`, and a check that `ko.ts` is complete. |
 
 ## Development
 
@@ -83,20 +89,19 @@ newest contract.
 npm install
 npm run typecheck
 npm test
+npm run dev
 ```
 
-`dist/plugin.js` is what the editor loads (`build` in the manifest): `npm run build` writes
-it with esbuild, and CI commits it on every push to `main` and checks at a tag that it is
-what the source builds to. Run `npm run dev` while you work so the bundle follows your
-edits. To try local changes, serve this directory with CORS enabled (`npx serve --cors .`)
-and add `http://localhost:3000/` in Manage Plugins, then use **Reload** after each edit.
+`npm run dev` rebuilds `dist/plugin.js` on every change. To try your changes in the editor,
+serve this folder with `npx serve --cors .`, add `http://localhost:3000/` in Plugins ▸
+**Manage Plugins…**, and press **Reload** on the plugin's row after each edit.
+
+The types come from [`@scm-js/plugin-api`](https://github.com/scm-js/plugin-api). The
+[plugin guide](https://docs.scmjs.dev/plugins/writing-a-plugin/) covers the API. This
+plugin is the worked example for `api.ui.mapTool`, `api.ui.panel` and `api.palette`.
 
 A plugin runs with the editor's own privileges. There is no sandbox.
 
-See [`docs/plugins.md`](https://github.com/scm-js/scm-js/blob/main/docs/plugins.md) in the editor
-for the API tour; this plugin is the worked example for `api.ui.mapTool`, `api.ui.panel` and
-`api.palette`.
-
 ## Licence
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
