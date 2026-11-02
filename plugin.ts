@@ -1,5 +1,5 @@
 /**
- * Paint — a plugin for the scmJS map editor (https://github.com/jeany55/scm-js).
+ * Paint — a plugin for the scmJS map editor (https://github.com/scm-js/scm-js).
  *
  * Tools ▸ Paint… opens a panel that floats over the map. Pick a tool in it (freehand,
  * line, rectangle, ellipse, polygon, star, spray, text, eraser) and draw on the map;
